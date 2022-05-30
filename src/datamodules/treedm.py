@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 from torch.utils.data import random_split, DataLoader
 
 from ..datasets import TreeSegments
-from typing import Optional
+from typing import Any, Optional
 
 class TreeDataModule(pl.LightningDataModule):
     def __init__(self,
@@ -57,23 +57,23 @@ class TreeDataModule(pl.LightningDataModule):
                               )
         
         
-    def train_dataloader(self):
+    def train_dataloader(self) -> DataLoader[Any]:
         return DataLoader(self.train_dataset,
                           batch_size=self.batch_size,
                           shuffle=True,
                           # drop_last=True,
                          )
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader[Any]:
         return DataLoader(self.val_dataset,
                           batch_size=self.batch_size,
                           shuffle=False,
                           # drop_last=True,
                          )
 
-#     def test_dataloader(self):
+#     def test_dataloader(self) -> DataLoader[Any]:
 #         return DataLoader(self.tree_test, batch_size=32)
 
-    def predict_dataloader(self):
+    def predict_dataloader(self) -> DataLoader[Any]:
         return DataLoader(self.predict_dataset, 
                           batch_size=self.batch_size)

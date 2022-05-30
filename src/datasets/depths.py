@@ -31,28 +31,29 @@ class TreeSegments(Dataset):
         depth_path = self.depth_paths[idx]
         img = Image.open(depth_path)
         
-        # find matching mask – a bit messy but should work
-        # mask_path = self.mask_paths[idx]
-        sample_id = depth_path.split('/')[-1].split('.')[0].split("_")[-2:]
-        sample_id = "_".join(sample_id)
-        
-        for m in self.mask_paths:
-            if sample_id in m:
-                mask_path = m
-                
-        mask = Image.open(mask_path).convert("L")
-        mask = mask.resize(self.img_size)
-
         if self.transform is not None:
             img = self.transform(img)
         
-        mask = self.target_transform(mask).type(torch.int64)
-        return img, mask
-        # return {
-        #     "image": img,
-        #     "mask": mask,
-        # }
-    
+        if self.train == True: 
+            # find matching mask – a bit messy but should work
+            # mask_path = self.mask_paths[idx]
+            sample_id = depth_path.split('/')[-1].split('.')[0].split("_")[-2:]
+            sample_id = "_".join(sample_id)
+        
+            for m in self.mask_paths:
+                if sample_id in m:
+                    mask_path = m
+
+            mask = Image.open(mask_path).convert("L")
+            mask = mask.resize(self.img_size)
+        
+            mask = self.target_transform(mask).type(torch.int64)
+            return img, mask
+        
+        else: 
+            # this is for prediction step, not sure if best solution
+            return img
+
     def __len__(self):
         return len(self.depth_paths)
     
