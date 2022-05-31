@@ -61,14 +61,14 @@ class TreeDataModule(pl.LightningDataModule):
         return DataLoader(self.train_dataset,
                           batch_size=self.batch_size,
                           shuffle=True,
-                          # drop_last=True,
+                          drop_last=True,
                          )
 
     def val_dataloader(self) -> DataLoader[Any]:
         return DataLoader(self.val_dataset,
                           batch_size=self.batch_size,
                           shuffle=False,
-                          # drop_last=True,
+                          drop_last=True,
                          )
 
 #     def test_dataloader(self) -> DataLoader[Any]:
