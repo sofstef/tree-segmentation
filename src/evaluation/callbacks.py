@@ -2,7 +2,8 @@ import torch
 import wandb
 from pytorch_lightning.callbacks import Callback
 
-### TO DO: change to log multiple samples in a batch 
+### TO DO: change to log multiple samples in a batch
+
 
 class LogPredictionSamplesCallback(Callback):
     def on_validation_batch_end(
@@ -26,9 +27,6 @@ class LogPredictionSamplesCallback(Callback):
             image = x[n]
             ground_truth = torch.squeeze(y[n].detach()).numpy()
             prediction_mask = torch.squeeze(outputs[n]).detach().numpy()
-            print(f"shape of depth image {image.shape}")
-            print(f"shape of ground truth {ground_truth.shape}")
-            print(prediction_mask.shape)
 
             wandb.log(
                 {
