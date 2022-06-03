@@ -16,11 +16,13 @@ class TreeDataModule(pl.LightningDataModule):
         data_dir: str = "./",
         target_dir: str = "./",
         batch_size: int = 8,
+        num_workers: int = 0,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.target_dir = target_dir
         self.batch_size = batch_size
+        self.num_workers = num_workers
         self.transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize([3.5133], [1.6922])]
         )
@@ -54,7 +56,12 @@ class TreeDataModule(pl.LightningDataModule):
 
                 # Assign test dataset for use in dataloader(s)
         #         if stage == "test" or stage is None:
-        #             self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
+        #             self.test_dataset = TreeSegments(
+        #     self.data_dir,
+        #     self.target_dir,
+        #     train=False,
+        #     transform=self.transform,
+        # )
 
         if stage == "predict" or stage is None:
             self.predict_dataset = TreeSegments(
@@ -70,6 +77,7 @@ class TreeDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             drop_last=True,
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self) -> DataLoader[Any]:
@@ -78,6 +86,7 @@ class TreeDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             drop_last=True,
+            num_workers=self.num_workers,
         )
 
     #     def test_dataloader(self) -> DataLoader[Any]:
