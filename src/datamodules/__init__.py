@@ -1,5 +1,3 @@
 from .treedm import TreeDataModule
 
-__all__ = (
-    "TreeDataModule"
-)
+__all__ = "TreeDataModule"
