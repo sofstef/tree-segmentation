@@ -50,7 +50,7 @@ class UNet(nn.Module):
         super().__init__()
         self.num_layers = num_layers
 
-        layers = [DoubleConv(3, features_start)]
+        layers = [DoubleConv(1, features_start)]
 
         feats = features_start
         for _ in range(num_layers - 1):
