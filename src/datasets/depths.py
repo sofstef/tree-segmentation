@@ -40,7 +40,7 @@ class TreeSegments(Dataset):
         img = img[:, 2].reshape(120, 160)
 
         if self.transform is not None:
-            img = self.transform(img)
+            img = self.transform(img).float()
 
         if self.train == True:
             # find matching mask – a bit messy but should work
