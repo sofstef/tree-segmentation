@@ -102,6 +102,7 @@ class SegModel(pl.LightningModule):
         return cast(Tensor, loss)
 
     def validation_step(self, batch, batch_idx):
+        
         preds, loss, gtruth = self._get_preds_loss_gtruth(batch)
 
         acc = self.val_acc(preds, gtruth)
@@ -124,6 +125,13 @@ class SegModel(pl.LightningModule):
         self.log("val_accuracy", self.test_acc, on_step=False, on_epoch=True)
         self.log("val_jaccard", self.test_jacc, on_step=False, on_epoch=True)
 
+        return preds
+    
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        
+        # predict dataloader loads only the inputs so batch=image here
+        logits = self(batch)
+        preds = torch.squeeze((logits.sigmoid() > 0.5).float(), dim=1)
         return preds
 
     def configure_optimizers(self):
