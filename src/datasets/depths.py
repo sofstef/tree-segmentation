@@ -58,6 +58,8 @@ class TreeSegments(Dataset):
             if self.target_transform is not None:
                 mask = self.target_transform(mask).type(torch.int64)
 
+            # assert that mask is binary
+
             return img, mask
 
         else:
