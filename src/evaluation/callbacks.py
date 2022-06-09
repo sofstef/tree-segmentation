@@ -25,8 +25,8 @@ class LogPredictionSamplesCallback(Callback):
             x, y = batch
 
             image = x[n]
-            ground_truth = torch.squeeze(y[n].detach()).numpy()
-            prediction_mask = torch.squeeze(outputs[n]).detach().numpy()
+            ground_truth = torch.squeeze(y[n].detach()).cpu().numpy()
+            prediction_mask = torch.squeeze(outputs[n]).detach().cpu().numpy()
 
             wandb.log(
                 {
