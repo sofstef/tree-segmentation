@@ -7,6 +7,7 @@ from torchvision import transforms
 from torch.utils.data import random_split, Dataset, DataLoader
 from typing import Any, Tuple, Optional, Callable
 import glob
+import torch.nn.functional as F
 
 
 class TreeSegments(Dataset):
@@ -17,7 +18,7 @@ class TreeSegments(Dataset):
         data_dir: str,
         target_dir: str,
         train: bool = True,
-        img_size: tuple = (160, 120),
+        img_size: tuple = (160, 128),
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
     ) -> None:
@@ -41,6 +42,7 @@ class TreeSegments(Dataset):
 
         if self.transform is not None:
             img = self.transform(img).float()
+            img = F.pad(img, (0, 0, 4, 4), "constant", 0)
 
         if self.train == True:
             # find matching mask – a bit messy but should work

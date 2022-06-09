@@ -19,21 +19,6 @@ class SegModel(pl.LightningModule):
     """Semantic Segmentation Module.
     This is a basic semantic segmentation module implemented with Lightning.
 
-    It uses the FCN ResNet50 model as an example.
-    Adam optimizer is used along with Cosine Annealing learning rate scheduler.
-
-    SegModel(
-      (net): UNet(
-        (layers): ModuleList(
-          (0): DoubleConv(...)
-          (1): Down(...)
-          (2): Down(...)
-          (3): Up(...)
-          (4): Up(...)
-          (5): Conv2d(64, 19, kernel_size=(1, 1), stride=(1, 1))
-        )
-      )
-    )
     """
 
     def __init__(
@@ -41,28 +26,41 @@ class SegModel(pl.LightningModule):
         num_classes: int = 1,
         batch_size: int = 4,
         lr: float = 1e-3,
-        num_layers: int = 3,
-        features_start: int = 64,
-        bilinear: bool = False,
+        # num_layers: int = 3,
+        # features_start: int = 64,
+        # bilinear: bool = False,
+        encoder: str = None,
+        encoder_weights: str = None,
+        in_channels: int = 1,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.num_classes = num_classes
         self.batch_size = batch_size
-        self.num_layers = num_layers
-        self.features_start = features_start
-        self.bilinear = bilinear
+        # self.num_layers = num_layers
+        # self.features_start = features_start
+        # self.bilinear = bilinear
+        self.encoder = encoder
+        self.encoder_weights = encoder_weights
+        self.in_channels = in_channels
 
-        self.net = UNet(
-            num_classes=self.num_classes,
-            num_layers=self.num_layers,
-            features_start=self.features_start,
-            bilinear=self.bilinear,
+        # self.net = UNet(
+        #     num_classes=self.num_classes,
+        #     num_layers=self.num_layers,
+        #     features_start=self.features_start,
+        #     bilinear=self.bilinear,
+        # )
+
+        self.net = smp.Unet(
+            encoder_name=self.encoder,
+            encoder_weights=self.encoder_weights,
+            in_channels=self.in_channels,
+            classes=self.num_classes,
         )
 
         self.lr = lr
-        # self.loss = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
-        self.loss = nn.BCEWithLogitsLoss()
+        self.loss = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
+        # self.loss = nn.BCEWithLogitsLoss()
 
         self.train_acc = Accuracy()
         self.val_acc = Accuracy()
