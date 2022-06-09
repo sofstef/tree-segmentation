@@ -8,7 +8,7 @@ import torchvision
 from torchmetrics import Accuracy, MetricCollection, JaccardIndex
 import segmentation_models_pytorch as smp
 from pytorch_toolbelt.losses import JaccardLoss, BinaryFocalLoss
-from typing import Any, Tuple, Optional, Callable, cast
+from typing import Any, Tuple, Optional, Callable, Dict, cast
 
 import pytorch_lightning as pl
 
@@ -21,46 +21,43 @@ class SegModel(pl.LightningModule):
 
     """
 
-    def __init__(
-        self,
-        num_classes: int = 1,
-        batch_size: int = 4,
-        lr: float = 1e-3,
-        # num_layers: int = 3,
-        # features_start: int = 64,
-        # bilinear: bool = False,
-        encoder: str = None,
-        encoder_weights: str = None,
-        in_channels: int = 1,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.num_classes = num_classes
-        self.batch_size = batch_size
-        # self.num_layers = num_layers
-        # self.features_start = features_start
-        # self.bilinear = bilinear
-        self.encoder = encoder
-        self.encoder_weights = encoder_weights
-        self.in_channels = in_channels
-
-        # self.net = UNet(
-        #     num_classes=self.num_classes,
-        #     num_layers=self.num_layers,
-        #     features_start=self.features_start,
-        #     bilinear=self.bilinear,
-        # )
-
+    def config_task(self) -> None:
+        """Configures the task based on kwargs parameters passed to the constructor."""
         self.net = smp.Unet(
-            encoder_name=self.encoder,
-            encoder_weights=self.encoder_weights,
-            in_channels=self.in_channels,
-            classes=self.num_classes,
+            encoder_name=self.hyperparams["encoder_name"],
+            encoder_weights=self.hyperparams["encoder_weights"],
+            in_channels=self.hyperparams["in_channels"],
+            classes=self.hyperparams["num_classes"],
         )
 
-        self.lr = lr
-        self.loss = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
-        # self.loss = nn.BCEWithLogitsLoss()
+        if self.hyperparams["loss"] == "dice":
+            self.loss = smp.losses.DiceLoss(
+                smp.losses.BINARY_MODE,
+                from_logits=True,
+                ignore_index=self.hyperparams["ignore_zeros"],
+            )
+
+        elif self.hyperparams["loss"] == "softBCE":
+            self.loss = smp.losses.SoftBCEWithLogitsLoss(
+                ignore_index=0,
+            )
+
+        else:
+            raise ValueError(f"Loss type '{self.hyperparams['loss']}' is not valid.")
+
+    def __init__(
+        self,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__()
+
+        # Creates `self.hparams` from kwargs
+        self.save_hyperparameters()  # type: ignore[operator]
+        self.hyperparams = cast(Dict[str, Any], self.hparams)
+
+        self.ignore_zeros = None if kwargs["ignore_zeros"] else 0
+
+        self.config_task()
 
         self.train_acc = Accuracy()
         self.val_acc = Accuracy()
@@ -69,19 +66,6 @@ class SegModel(pl.LightningModule):
         self.train_jacc = JaccardIndex(num_classes=2, ignore_index=0)
         self.val_jacc = JaccardIndex(num_classes=2, ignore_index=0)
         self.test_jacc = JaccardIndex(num_classes=2, ignore_index=0)
-
-        self.save_hyperparameters()
-
-        # self.train_metrics = MetricCollection(
-        #     [
-        #         JaccardIndex(
-        #             num_classes=self.num_classes,
-        #         ),
-        #     ],
-        #     prefix="train_",
-        # )
-        # self.val_metrics = self.train_metrics.clone(prefix="val_")
-        # self.test_metrics = self.train_metrics.clone(prefix="test_")
 
     def forward(self, x):
         return self.net(x)
@@ -95,7 +79,7 @@ class SegModel(pl.LightningModule):
 
         self.log("train_loss", loss, on_step=True, on_epoch=True)
         self.log("train_accuracy", self.train_acc, on_step=False, on_epoch=True)
-        self.log("train_jaccard", self.train_jacc, on_step=False, on_epoch=True)
+        # self.log("train_jaccard", self.train_jacc, on_step=False, on_epoch=True)
 
         return cast(Tensor, loss)
 
@@ -108,7 +92,7 @@ class SegModel(pl.LightningModule):
 
         self.log("val_loss", loss, on_step=True, on_epoch=True)
         self.log("val_accuracy", self.val_acc, on_step=False, on_epoch=True)
-        self.log("val_jaccard", self.val_jacc, on_step=False, on_epoch=True)
+        # self.log("val_jaccard", self.val_jacc, on_step=False, on_epoch=True)
 
         return preds
 
@@ -121,7 +105,7 @@ class SegModel(pl.LightningModule):
 
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         self.log("val_accuracy", self.test_acc, on_step=False, on_epoch=True)
-        self.log("val_jaccard", self.test_jacc, on_step=False, on_epoch=True)
+        # self.log("val_jaccard", self.test_jacc, on_step=False, on_epoch=True)
 
         return preds
 
@@ -133,7 +117,7 @@ class SegModel(pl.LightningModule):
         return preds
 
     def configure_optimizers(self):
-        opt = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        opt = torch.optim.Adam(self.net.parameters(), lr=self.hyperparams["lr"])
         # sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=10)
         return [opt]
         # return [opt], [sch]
