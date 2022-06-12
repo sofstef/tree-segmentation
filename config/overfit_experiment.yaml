@@ -1,0 +1,37 @@
+################################################################################
+#   CONFIGURATIONS FOR BINARY SEGMENTATION WITH A UNET
+################################################################################
+
+program:
+    seed: 27
+
+datamodule:
+    data_dir: "data/debug_depth/"
+    target_dir: "data/debug_segment/"
+    batch_size: 1
+    num_workers: 0
+
+module:
+    encoder_name: "resnet18"
+    encoder_weights: "imagenet"
+    in_channels: 1
+    num_classes: 1
+    loss: "dice"
+    ignore_zeros: null
+    jaccard_average: "macro"
+    learning_rate: 0.001
+    learning_rate_schedule_patience: null
+
+trainer:
+    default_root_dir: "experiments/"
+    fast_dev_run: False
+    gpus: 0
+    max_epochs: 30
+    # log_every_n_steps: 1
+    # precision: 16
+    auto_lr_find: False
+    save_top_k: 2
+
+logger:
+    run_name: "resnet18_1sample_imagenet_dice_lr_0.001_eps_30"
+    log_dir: "experiments/logs/"

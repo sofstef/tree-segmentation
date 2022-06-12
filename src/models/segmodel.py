@@ -5,21 +5,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import torchvision
-from torchmetrics import Accuracy, MetricCollection, JaccardIndex
+from torchmetrics import Accuracy, JaccardIndex, F1Score
 import segmentation_models_pytorch as smp
 from pytorch_toolbelt.losses import JaccardLoss, BinaryFocalLoss
 from typing import Any, Tuple, Optional, Callable, Dict, cast
 
 import pytorch_lightning as pl
 
-from .unet import UNet
+# from .unet import UNet
 
 
 class SegModel(pl.LightningModule):
-    """Semantic Segmentation Module.
-    This is a basic semantic segmentation module implemented with Lightning.
-
-    """
+    """Semantic Segmentation task implemeneted with Lightning."""
 
     def config_task(self) -> None:
         """Configures the task based on kwargs parameters passed to the constructor."""
@@ -59,13 +56,14 @@ class SegModel(pl.LightningModule):
 
         self.config_task()
 
-        self.train_acc = Accuracy()
-        self.val_acc = Accuracy()
-        self.test_acc = Accuracy()
-
-        self.train_jacc = JaccardIndex(num_classes=2, ignore_index=0)
-        self.val_jacc = JaccardIndex(num_classes=2, ignore_index=0)
-        self.test_jacc = JaccardIndex(num_classes=2, ignore_index=0)
+        self.train_acc = Accuracy(num_classes=1, multiclass=False)
+        self.val_acc = Accuracy(num_classes=1, multiclass=False)
+        self.test_acc = Accuracy(num_classes=1, multiclass=False)
+        self.train_jacc = JaccardIndex(2, average=self.hyperparams["jaccard_average"])
+        self.val_jacc = JaccardIndex(2, average=self.hyperparams["jaccard_average"])
+        self.test_jacc = JaccardIndex(2, average=self.hyperparams["jaccard_average"])
+        self.train_f1 = F1Score(num_classes=1, multiclass=False)
+        self.val_f1 = F1Score(num_classes=1, multiclass=False)
 
     def forward(self, x):
         return self.net(x)
@@ -76,10 +74,12 @@ class SegModel(pl.LightningModule):
 
         acc = self.train_acc(preds, gtruth)
         jaccard = self.train_jacc(preds, gtruth)
+        f1 = self.train_f1(preds, gtruth)
 
         self.log("train_loss", loss, on_step=True, on_epoch=True)
         self.log("train_accuracy", self.train_acc, on_step=False, on_epoch=True)
-        # self.log("train_jaccard", self.train_jacc, on_step=False, on_epoch=True)
+        self.log("train_jaccard", self.train_jacc, on_step=False, on_epoch=True)
+        self.log("train_f1", self.train_f1, on_step=False, on_epoch=True)
 
         return cast(Tensor, loss)
 
@@ -89,10 +89,12 @@ class SegModel(pl.LightningModule):
 
         acc = self.val_acc(preds, gtruth)
         jaccard = self.val_jacc(preds, gtruth)
+        f1 = self.val_f1(preds, gtruth)
 
         self.log("val_loss", loss, on_step=True, on_epoch=True)
         self.log("val_accuracy", self.val_acc, on_step=False, on_epoch=True)
-        # self.log("val_jaccard", self.val_jacc, on_step=False, on_epoch=True)
+        self.log("val_jaccard", self.val_jacc, on_step=False, on_epoch=True)
+        self.log("val_f1", self.val_f1, on_step=False, on_epoch=True)
 
         return preds
 
@@ -103,9 +105,9 @@ class SegModel(pl.LightningModule):
         acc = self.test_acc(preds, gtruth)
         jaccard = self.test_jacc(preds, gtruth)
 
-        self.log("val_loss", loss, on_step=False, on_epoch=True)
-        self.log("val_accuracy", self.test_acc, on_step=False, on_epoch=True)
-        # self.log("val_jaccard", self.test_jacc, on_step=False, on_epoch=True)
+        self.log("test_loss", loss, on_step=False, on_epoch=True)
+        self.log("test_accuracy", self.test_acc, on_step=False, on_epoch=True)
+        self.log("test_jaccard", self.test_jacc, on_step=False, on_epoch=True)
 
         return preds
 
@@ -113,7 +115,7 @@ class SegModel(pl.LightningModule):
 
         # predict dataloader loads only the inputs so batch=image here
         logits = self(batch)
-        preds = torch.squeeze((logits.sigmoid() > 0.5).float(), dim=1)
+        preds = torch.squeeze((logits.sigmoid() > 0.5).int(), dim=1)
         return preds
 
     def configure_optimizers(self):
@@ -130,9 +132,9 @@ class SegModel(pl.LightningModule):
 
         loss = self.loss(logits, mask)
 
-        preds = torch.squeeze((logits.sigmoid() > 0.5).float(), dim=1)
-        # preds = torch.argmax(logits, dim=1)
-
+        # preds being int needed for correct metric computation
+        # make sure there's no reason why we'd want them as floats
+        preds = torch.squeeze((logits.sigmoid() > 0.5).int(), dim=1)
         gtruth = torch.squeeze(mask, dim=1).int()
 
         return preds, loss, gtruth
