@@ -64,6 +64,7 @@ class SegModel(pl.LightningModule):
         self.test_jacc = JaccardIndex(2, average=self.hyperparams["jaccard_average"])
         self.train_f1 = F1Score(num_classes=1, multiclass=False)
         self.val_f1 = F1Score(num_classes=1, multiclass=False)
+        self.test_f1 = F1Score(num_classes=1, multiclass=False)
 
     def forward(self, x):
         return self.net(x)
@@ -76,6 +77,7 @@ class SegModel(pl.LightningModule):
         jaccard = self.train_jacc(preds, gtruth)
         f1 = self.train_f1(preds, gtruth)
 
+        # TO DO: want to pass object and not result but this is all too clunky
         self.log("train_loss", loss, on_step=True, on_epoch=True)
         self.log("train_accuracy", self.train_acc, on_step=False, on_epoch=True)
         self.log("train_jaccard", self.train_jacc, on_step=False, on_epoch=True)
@@ -91,25 +93,38 @@ class SegModel(pl.LightningModule):
         jaccard = self.val_jacc(preds, gtruth)
         f1 = self.val_f1(preds, gtruth)
 
+        metrics = {"val_acc": acc, "val_loss": loss, "val_jacc": jaccard, "val_f1": f1}
+
         self.log("val_loss", loss, on_step=True, on_epoch=True)
         self.log("val_accuracy", self.val_acc, on_step=False, on_epoch=True)
         self.log("val_jaccard", self.val_jacc, on_step=False, on_epoch=True)
         self.log("val_f1", self.val_f1, on_step=False, on_epoch=True)
 
-        return preds
+        return metrics
 
     def test_step(self, batch, batch_idx):
 
         preds, loss, gtruth = self._get_preds_loss_gtruth(batch)
 
+        print(f"the shape of gtruth is {gtruth.shape}")
+        print(f"max of gtruth is {gtruth.max()}")
         acc = self.test_acc(preds, gtruth)
         jaccard = self.test_jacc(preds, gtruth)
+        f1 = self.test_f1(preds, gtruth)
+
+        metrics = {
+            "test_acc": acc,
+            "test_loss": loss,
+            "test_jacc": jaccard,
+            "test_f1": f1,
+        }
 
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.log("test_accuracy", self.test_acc, on_step=False, on_epoch=True)
         self.log("test_jaccard", self.test_jacc, on_step=False, on_epoch=True)
+        self.log("test_f1", self.test_f1, on_step=False, on_epoch=True)
 
-        return preds
+        return metrics
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
 

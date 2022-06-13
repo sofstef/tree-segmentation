@@ -8,7 +8,7 @@ def BinaryIoU(outputs: torch.Tensor, labels: torch.Tensor):
     # You can comment out this line if you are passing tensors of equal shape
     # But if you are passing output from UNet or something it will most probably
     # be with the BATCH x 1 x H x W shape
-    outputs = outputs.squeeze(1)  # BATCH x 1 x H x W => BATCH x H x W
+    # outputs = outputs.squeeze(1)  # BATCH x 1 x H x W => BATCH x H x W
 
     intersection = (
         (outputs & labels).float().sum((1, 2))

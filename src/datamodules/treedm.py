@@ -15,6 +15,8 @@ class TreeDataModule(pl.LightningDataModule):
         self,
         data_dir: str = "./",
         target_dir: str = "./",
+        test_data_dir: str = "./",
+        test_target_dir: str = "./",
         batch_size: int = 8,
         num_workers: int = 0,
         drop_last_batch: bool = True,
@@ -22,6 +24,8 @@ class TreeDataModule(pl.LightningDataModule):
         super().__init__()
         self.data_dir = data_dir
         self.target_dir = target_dir
+        self.test_data_dir = test_data_dir
+        self.test_target_dir = test_target_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.transform = transforms.Compose(
@@ -57,13 +61,14 @@ class TreeDataModule(pl.LightningDataModule):
                 )
 
                 # Assign test dataset for use in dataloader(s)
-        #         if stage == "test" or stage is None:
-        #             self.test_dataset = TreeSegments(
-        #     self.data_dir,
-        #     self.target_dir,
-        #     train=False,
-        #     transform=self.transform,
-        # )
+        if stage == "test" or stage is None:
+            self.test_dataset = TreeSegments(
+                self.test_data_dir,
+                self.test_target_dir,
+                train=True,  # this is a hack until I sort out predict and test dls
+                transform=self.transform,
+                target_transform=self.target_transform,
+            )
 
         if stage == "predict" or stage is None:
             self.predict_dataset = TreeSegments(
@@ -91,8 +96,8 @@ class TreeDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
         )
 
-    #     def test_dataloader(self) -> DataLoader[Any]:
-    #         return DataLoader(self.tree_test, batch_size=32)
+    def test_dataloader(self) -> DataLoader[Any]:
+        return DataLoader(self.test_dataset, batch_size=self.batch_size)
 
     def predict_dataloader(self) -> DataLoader[Any]:
         return DataLoader(self.predict_dataset, batch_size=self.batch_size)
