@@ -17,6 +17,7 @@ class TreeDataModule(pl.LightningDataModule):
         target_dir: str = "./",
         batch_size: int = 8,
         num_workers: int = 0,
+        drop_last_batch: bool = True,
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -27,6 +28,7 @@ class TreeDataModule(pl.LightningDataModule):
             [transforms.ToTensor(), transforms.Normalize([3.5133], [1.6922])]
         )
         self.target_transform = transforms.ToTensor()
+        self.drop_last = drop_last_batch
 
     def setup(self, stage: Optional[str] = None):
 
@@ -76,7 +78,7 @@ class TreeDataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            drop_last=True,
+            drop_last=self.drop_last,
             num_workers=self.num_workers,
         )
 
@@ -85,7 +87,7 @@ class TreeDataModule(pl.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            drop_last=True,
+            drop_last=self.drop_last,
             num_workers=self.num_workers,
         )
 
