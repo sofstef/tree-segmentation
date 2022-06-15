@@ -5,14 +5,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import torchvision
-from torchmetrics import Accuracy, JaccardIndex, F1Score
+from torchmetrics import Accuracy, JaccardIndex, F1Score, MeanSquaredError
 import segmentation_models_pytorch as smp
 from pytorch_toolbelt.losses import JaccardLoss, BinaryFocalLoss
 from typing import Any, Tuple, Optional, Callable, Dict, cast
 
 import pytorch_lightning as pl
-
-# from .unet import UNet
 
 
 class SegModel(pl.LightningModule):
@@ -65,6 +63,7 @@ class SegModel(pl.LightningModule):
         self.train_f1 = F1Score(num_classes=1, multiclass=False)
         self.val_f1 = F1Score(num_classes=1, multiclass=False)
         self.test_f1 = F1Score(num_classes=1, multiclass=False)
+        self.rmse = MeanSquaredError()
 
     def forward(self, x):
         return self.net(x)
@@ -78,7 +77,7 @@ class SegModel(pl.LightningModule):
         f1 = self.train_f1(preds, gtruth)
 
         # TO DO: want to pass object and not result but this is all too clunky
-        self.log("train_loss", loss, on_step=True, on_epoch=True)
+        self.log("train_loss", loss, on_step=True, on_epoch=False)
         self.log("train_accuracy", self.train_acc, on_step=False, on_epoch=True)
         self.log("train_jaccard", self.train_jacc, on_step=False, on_epoch=True)
         self.log("train_f1", self.train_f1, on_step=False, on_epoch=True)
@@ -104,25 +103,26 @@ class SegModel(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
 
-        preds, loss, gtruth = self._get_preds_loss_gtruth(batch)
+        self.test_preds, loss, self.test_gtruth = self._get_preds_loss_gtruth(batch)
 
-        print(f"the shape of gtruth is {gtruth.shape}")
-        print(f"max of gtruth is {gtruth.max()}")
-        acc = self.test_acc(preds, gtruth)
-        jaccard = self.test_jacc(preds, gtruth)
-        f1 = self.test_f1(preds, gtruth)
+        acc = self.test_acc(self.test_preds, self.test_gtruth)
+        jaccard = self.test_jacc(self.test_preds, self.test_gtruth)
+        f1 = self.test_f1(self.test_preds, self.test_gtruth)
+        rmse = self.rmse(self.test_preds, self.test_gtruth)
 
         metrics = {
             "test_acc": acc,
             "test_loss": loss,
             "test_jacc": jaccard,
             "test_f1": f1,
+            "test_rmse": rmse,
         }
 
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.log("test_accuracy", self.test_acc, on_step=False, on_epoch=True)
         self.log("test_jaccard", self.test_jacc, on_step=False, on_epoch=True)
         self.log("test_f1", self.test_f1, on_step=False, on_epoch=True)
+        self.log("test_rmse", self.rmse, on_step=False, on_epoch=True)
 
         return metrics
 
@@ -134,10 +134,19 @@ class SegModel(pl.LightningModule):
         return preds
 
     def configure_optimizers(self):
-        opt = torch.optim.Adam(self.net.parameters(), lr=self.hyperparams["lr"])
+        optimizer = torch.optim.Adam(self.net.parameters(), lr=self.hyperparams["lr"])
         # sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=10)
-        return [opt]
-        # return [opt], [sch]
+
+        return {
+            "optimizer": optimizer,
+            # "lr_scheduler": {
+            #     "scheduler": ReduceLROnPlateau(
+            #         optimizer,
+            #         patience=self.hyperparams["learning_rate_schedule_patience"],
+            #     ),
+            #     "monitor": "val_loss",
+            #     },
+        }
 
     def _get_preds_loss_gtruth(self, batch):
 
