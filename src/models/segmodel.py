@@ -100,7 +100,7 @@ class SegModel(pl.LightningModule):
         self.log("val_jaccard", self.val_jacc, on_step=False, on_epoch=True)
         self.log("val_f1", self.val_f1, on_step=False, on_epoch=True)
 
-        return metrics
+        return preds
 
     def test_step(self, batch, batch_idx):
 

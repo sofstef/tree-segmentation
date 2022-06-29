@@ -20,28 +20,27 @@ class LogPredictionSamplesCallback(Callback):
         # `outputs` comes from `LightningModule.validation_step`
         # which corresponds to our model predictions in this case
 
-        n = 0
         if batch_idx == 0:
             x, y = batch
+            for n in range(8):
+                image = x[n]
+                ground_truth = torch.squeeze(y[n].detach()).cpu().numpy()
+                prediction_mask = torch.squeeze(outputs[n]).detach().cpu().numpy()
 
-            image = x[n]
-            ground_truth = torch.squeeze(y[n].detach()).cpu().numpy()
-            prediction_mask = torch.squeeze(outputs[n]).detach().cpu().numpy()
-
-            wandb.log(
-                {
-                    "Depth - Prediction - Ground Truth": wandb.Image(
-                        image[0, :, :],
-                        masks={
-                            "predictions": {
-                                "mask_data": prediction_mask,
-                                "class_labels": class_labels,
+                wandb.log(
+                    {
+                        "Depth - Prediction - Ground Truth": wandb.Image(
+                            image[0, :, :],
+                            masks={
+                                "predictions": {
+                                    "mask_data": prediction_mask,
+                                    "class_labels": class_labels,
+                                },
+                                "ground_truth": {
+                                    "mask_data": ground_truth,
+                                    "class_labels": class_labels,
+                                },
                             },
-                            "ground_truth": {
-                                "mask_data": ground_truth,
-                                "class_labels": class_labels,
-                            },
-                        },
-                    )
-                }
-            )
+                        )
+                    }
+                )
