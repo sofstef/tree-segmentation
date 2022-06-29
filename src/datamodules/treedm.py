@@ -29,14 +29,12 @@ class TreeDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.transform = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize([3.5133], [1.6922])]
+            [transforms.ToTensor(), transforms.Normalize([3.2749], [1.6713])]
         )
         self.target_transform = transforms.ToTensor()
         self.drop_last = drop_last_batch
 
     def setup(self, stage: Optional[str] = None):
-
-        validation_split = 0.8
 
         # Assign train/val datasets for use in dataloaders
         if stage == "fit" or stage is None:
@@ -60,12 +58,11 @@ class TreeDataModule(pl.LightningDataModule):
                     full_dataset, [train_size, val_size]
                 )
 
-                # Assign test dataset for use in dataloader(s)
+        # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
             self.test_dataset = TreeSegments(
                 self.test_data_dir,
                 self.test_target_dir,
-                train=True,  # this is a hack until I sort out predict and test dls
                 transform=self.transform,
                 target_transform=self.target_transform,
             )

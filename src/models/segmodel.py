@@ -21,6 +21,7 @@ class SegModel(pl.LightningModule):
         self.net = smp.Unet(
             encoder_name=self.hyperparams["encoder_name"],
             encoder_weights=self.hyperparams["encoder_weights"],
+            # decoder_use_batchnorm=self.hyperparams["decoder_use_batchnorm"],
             in_channels=self.hyperparams["in_channels"],
             classes=self.hyperparams["num_classes"],
         )
@@ -135,7 +136,6 @@ class SegModel(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.net.parameters(), lr=self.hyperparams["lr"])
-        # sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=10)
 
         return {
             "optimizer": optimizer,

@@ -42,9 +42,12 @@ class TreeSegments(Dataset):
 
         if self.transform is not None:
             img = self.transform(img).float()
+
+            # this is to make image height divisible by 32
+            # as required for pytorch segmentation models
             img = F.pad(img, (0, 0, 4, 4), "constant", 0)
 
-        if self.train == True:
+        if self.train == True or self.train is None:
             # find matching mask – a bit messy but should work
             # mask_path = self.mask_paths[idx]
             sample_id = data_path.split("/")[-1].split("_")[-2:]
@@ -60,12 +63,10 @@ class TreeSegments(Dataset):
             if self.target_transform is not None:
                 mask = self.target_transform(mask).type(torch.int64)
 
-            # assert that mask is binary
-
-            return img, mask
+            return img, mask  # , sample_id
 
         else:
-            # this is for prediction step, not sure if best solution
+            # this is for prediction step
             return img
 
     def __len__(self):
