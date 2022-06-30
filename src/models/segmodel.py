@@ -3,6 +3,7 @@ import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import torchvision
 from torchmetrics import Accuracy, JaccardIndex, F1Score, MeanSquaredError
@@ -139,13 +140,13 @@ class SegModel(pl.LightningModule):
 
         return {
             "optimizer": optimizer,
-            # "lr_scheduler": {
-            #     "scheduler": ReduceLROnPlateau(
-            #         optimizer,
-            #         patience=self.hyperparams["learning_rate_schedule_patience"],
-            #     ),
-            #     "monitor": "val_loss",
-            #     },
+            "lr_scheduler": {
+                "scheduler": ReduceLROnPlateau(
+                    optimizer,
+                    patience=self.hyperparams["learning_rate_schedule_patience"],
+                ),
+                "monitor": "val_loss",
+            },
         }
 
     def _get_preds_loss_gtruth(self, batch):
@@ -157,7 +158,6 @@ class SegModel(pl.LightningModule):
         loss = self.loss(logits, mask)
 
         # preds being int needed for correct metric computation
-        # make sure there's no reason why we'd want them as floats
         preds = torch.squeeze((logits.sigmoid() > 0.5).int(), dim=1)
         gtruth = torch.squeeze(mask, dim=1).int()
 

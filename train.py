@@ -16,10 +16,9 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import Callback
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from src.datasets import TreeSegments
 
-# from src.evaluation import BinaryIoU
 from src.datamodules import TreeDataModule
 from src.models import SegModel
 from src.evaluation import LogPredictionSamplesCallback
@@ -58,20 +57,19 @@ def main(conf):
 
     callbacks = [
         LogPredictionSamplesCallback(),
-        ModelCheckpoint(monitor="train_accuracy", mode="max"),
         ModelCheckpoint(monitor="val_accuracy", mode="max"),
-        ModelCheckpoint(monitor="train_jaccard", mode="max"),
         ModelCheckpoint(monitor="val_jaccard", mode="max"),
         ModelCheckpoint(
             monitor="val_loss", mode="min", save_top_k=conf["trainer"]["save_top_k"]
         ),
-        ModelCheckpoint(monitor="train_f1", mode="max"),
         ModelCheckpoint(monitor="val_f1", mode="max"),
-        # EarlyStopping(
-        #     monitor="val_loss",
-        #     min_delta=0.00,
-        #     patience=3,
-        # ),
+        EarlyStopping(
+            monitor="val_loss",
+            min_delta=0.00,
+            patience=10,
+            mode="min",
+            verbose=False,
+        ),
     ]
 
     trainer = Trainer(
@@ -81,12 +79,12 @@ def main(conf):
         default_root_dir=conf["trainer"]["default_root_dir"],
         gpus=conf["trainer"]["gpus"],
         max_epochs=conf["trainer"]["max_epochs"],
-        # log_every_n_steps=conf["trainer"]["log_every_n_steps"],
+        log_every_n_steps=conf["trainer"]["log_every_n_steps"],
         # precision=conf["trainer"]["precision"],
         auto_lr_find=conf["trainer"]["auto_lr_find"],
     )
 
-    wandb_logger.watch(model)
+    # wandb_logger.watch(model.net) # check if useful to log model topology
 
     if conf["trainer"]["auto_lr_find"]:
         trainer.tune(model, datamodule)
