@@ -84,7 +84,7 @@ def main(conf):
         auto_lr_find=conf["trainer"]["auto_lr_find"],
     )
 
-    # wandb_logger.watch(model.net) # check if useful to log model topology
+    wandb_logger.watch(model)
 
     if conf["trainer"]["auto_lr_find"]:
         trainer.tune(model, datamodule)

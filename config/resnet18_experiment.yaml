@@ -1,5 +1,5 @@
 ################################################################################
-#   CONFIGURATIONS FOR BINARY SEGMENTATION FOR A UNET WITH RESNET34 ENCODER
+#  CONFIGURATIONS FOR BINARY SEGMENTATION FOR A UNET WITH RESNET18 ENCODER
 ################################################################################
 
 program:
@@ -14,26 +14,26 @@ datamodule:
     num_workers: 0
 
 module:
-    encoder_name: "resnet34"
+    encoder_name: "resnet18"
     encoder_weights: "imagenet"
     in_channels: 1
     num_classes: 1
     loss: "dice"
     ignore_zeros: null
     jaccard_average: "macro"
-    learning_rate: 0.0003648
+    learning_rate: 0.004
     learning_rate_schedule_patience: 5
 
 trainer:
     default_root_dir: "experiments/"
     fast_dev_run: False
     gpus: 1
-    max_epochs: 50
+    max_epochs: 100
     log_every_n_steps: 1
     # precision: 32
     auto_lr_find: True
     save_top_k: 2
 
 logger:
-    run_name: "[jasmin_run]_resnet34_imagenet_dice_auto_lr_batch8_lr_patience_5_eps_50"
+    run_name: "[jasmin_run]_resnet18_imagenet_dice_auto_lr_batch8_lr_patience_5_eps_100"
     log_dir: "experiments/logs/"

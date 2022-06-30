@@ -63,7 +63,7 @@ class TreeSegments(Dataset):
             if self.target_transform is not None:
                 mask = self.target_transform(mask).type(torch.int64)
 
-            return img, mask  # , sample_id
+            return img, mask
 
         else:
             # this is for prediction step
