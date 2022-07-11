@@ -38,8 +38,9 @@ conda activate venv
 
 Install dependencies 
 
+```
 pip install -r requirements.txt
-
+```
 
 ## Project Organization
 ```
