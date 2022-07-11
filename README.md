@@ -4,7 +4,7 @@
  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 
-This repository contains the code for my MRes project looking into using depth data from regular smartphones (i.e. with no specialised hardware for depth sensing) to perform automatic tree measurements useful for monitoring and studying forest carbon. 
+This repository contains the code for my MRes project as part of the MRes+PhD in AI for Environmental risk at Cambridge University. In this work we are looking into using depth data from regular smartphones (i.e. with no specialised hardware for depth sensing) to perform automatic tree measurements useful for monitoring and studying forest carbon. 
 
 ## Data 
 
