@@ -67,7 +67,7 @@ conda activate env_name
 │   ├── models         <- Scripts to train models and then use trained models to make
 │   │                     predictions
 │   │
-│   ├── evaluation     <- Scripts defining functions used in evaluation
+│   └── evaluation     <- Scripts defining functions used in evaluation
 │
 └── setup.cfg          <- setup configuration file for linting rules
 ```
