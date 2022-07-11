@@ -1,5 +1,9 @@
 # Tree trunk segmentation with smartphones and neural networks
 
+ [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+ <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+
+
 This repository contains the code for my MRes project looking into using depth data from regular smartphones (i.e. with no specialised hardware for depth sensing) to perform automatic tree measurements useful for monitoring and studying forest carbon. 
 
 ## Data 
@@ -14,9 +18,6 @@ Once you've downloaded the data you can run any of the experiments set up in the
 $ python train.py --cfg=config/resnet34_experiment.yaml --o=my/output/dir
 ```
 
-
- [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
- <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 ## Requirements
 - Python 3.8+
