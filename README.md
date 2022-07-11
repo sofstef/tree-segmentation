@@ -1,13 +1,40 @@
-# Tree segmentation with smartphones and neural networks
+# Tree trunk segmentation with smartphones and neural networks
 
  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
+
+This repository contains the code for my MRes project looking into using depth data from regular smartphones (i.e. with no specialised hardware for depth sensing) to perform automatic tree measurements useful for monitoring and studying forest carbon. 
+
+## Data 
+
+The data collected for this project is freely available and can be found [here](https://doi.org/10.5281/zenodo.6787045). To reproduce the results obtained, download the data and place samples in `data/train/samples`, `data/train/segments`, `data/test/samples` and `data/test/segments`. Files with a `.tiff` extension are the target segments, and files without an extension are the inputs. There are also RGB images in the dataset with a `.jpeg` extension, but these are not used in training and testing. 
+
+## Experiments
+
+Once you've downloaded the data you can run any of the experiments set up in the configs, for example: 
+
+```bash
+$ python train.py --cfg=config/resnet34_experiment.yaml --o=my/output/dir
+```
+
+
 ## Requirements
-- Python 3.9+
+- Python 3.8+
 
 ## Getting started
 
+Code implemented in Python 3.8.0
+
+### Setting up environment
+
+Create and activate environment
+
+```
+conda env create -f requirements/environment.yml -n env_name 
+conda activate env_name 
+(env_name)
+```
 
 ## Project Organization
 ```
@@ -32,23 +59,18 @@
 ├── src                <- Source code for use in this project.
 │   ├── __init__.py    <- Makes src a Python module
 │   │
-│   ├── data_loading   <- Scripts to download or generate data
+│   ├── datasets       <- Scripts defining dataset classes
 │   │
-│   ├── preprocessing  <- Scripts to turn raw data into clean data and features for modeling
+│   ├── datamodules    <- Scripts to set up and load data with PyTorch lightning datamodules
+│   │
 |   |
 │   ├── models         <- Scripts to train models and then use trained models to make
 │   │                     predictions
 │   │
-│   └── tests          <- Scripts for unit tests of your functions
+│   ├── evaluation     <- Scripts defining functions used in evaluation
 │
 └── setup.cfg          <- setup configuration file for linting rules
 ```
-
-## Code formatting
-To automatically format your code, make sure you have `black` installed (`pip install black`) and call
-```black . ``` 
-from within the project directory.
-
 ---
 
 Project template created by the [Cambridge AI4ER Cookiecutter](https://github.com/ai4er-cdt/ai4er-cookiecutter).
