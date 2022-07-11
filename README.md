@@ -31,15 +31,9 @@ Code implemented in Python 3.8.0
 Create and activate environment
 
 ```
-conda create -n venv python=3.8
-conda activate venv 
-(venv)
-```
-
-Install dependencies 
-
-```
-pip install -r requirements.txt
+conda env create -f requirements/environment.yml -n env_name 
+conda activate env_name 
+(env_name)
 ```
 
 ## Project Organization
