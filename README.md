@@ -4,7 +4,10 @@
  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 
-This repository contains the code for my MRes project as part of the MRes+PhD in AI for Environmental risk at Cambridge University. In this work we are looking into using depth data from regular smartphones (i.e. with no specialised hardware for depth sensing) to perform automatic tree measurements useful for monitoring and studying forest carbon. 
+This repository contains the code for my MRes project as part of the MRes+PhD in AI for Environmental risk at Cambridge University. 
+
+In this project we employ a machine learning approach to improve the accuracy of automatic diameter estimates of forest trees using a mobile phone app that runs on a smartphone with a regular camera. We do this by collecting and curating a dataset that allows us to make use of the advantages of depth maps obtained from a LiDAR-equipped phone to refine depth maps obtained from a regular camera using a depth-from-motion algorithm developed by Google. We train a UNet model with a ResNet34 encoder for a binary image segmentation task of segmenting tree trunks from input depth data, and use the predicted segments to select depths to feed to an existing diameter estimation algorithm.
+
 
 ## Data 
 
